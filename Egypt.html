@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light-mode">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكي قرعة كأس العالم 2026 - الإصدار النظيف</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* تعريف الألوان الأساسية (الوضع النهاري) */
+        :root {
+            --bg-color: #e6eef7; 
+            --container-bg: #ffffff;
+            --text-color: #333;
+            --header-color: #004d98;
+            --accent-color: #f9c70b;
+            --group-item-bg: #f7f9fc;
+            --group-border: #004d98;
+            --team-display-bg: #ffffff;
+            --button-bg: #004d98;
+            --button-text: #ffffff;
+        }
+
+        /* الوضع الليلي */
+        .dark-mode {
+            --bg-color: #1a1a2e;
+            --container-bg: #22253b;
+            --text-color: #e0e0e0;
+            --header-color: #f9c70b;
+            --accent-color: #d63384;
+            --group-item-bg: #2c314a;
+            --group-border: #f9c70b;
+            --team-display-bg: #373b54;
+            --button-bg: #d63384;
+            --button-text: #ffffff;
+        }
+        
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            text-align: right; 
+            padding: 20px; 
+            direction: rtl; 
+            transition: background-color 0.4s, color 0.4s;
+        }
+        .container { 
+            max-width: 1100px; 
+            margin: 0 auto; 
+            background-color: var(--container-bg); 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
+            border-top: 5px solid var(--accent-color);
+        }
+        h1 { 
+            color: var(--header-color); 
+            border-bottom: 3px solid var(--accent-color); 
+            padding-bottom: 12px; 
+            margin-bottom: 25px; 
+            font-size: 2.2em; 
+            text-align: center;
+        }
+        .controls { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 20px; 
+            margin-bottom: 30px; 
+            flex-wrap: wrap;
+        }
+        select, button {
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        #teamSelector {
+            border: 2px solid var(--button-bg);
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            min-width: 250px;
+            padding-right: 40px;
+        }
+        #generateBtn { 
+            background-color: var(--button-bg); 
+            color: var(--button-text); 
+            border: none;
+        }
+        #generateBtn:hover { 
+            background-color: var(--accent-color); 
+            color: var(--header-color);
+        }
+        #modeToggle {
+            background-color: var(--accent-color);
+            color: var(--header-color);
+            border: none;
+        }
+        #modeToggle:hover {
+            background-color: var(--header-color);
+            color: var(--accent-color);
+        }
+        #results { 
+            margin-top: 40px; 
+            border-top: 1px dashed var(--text-color);
+            padding-top: 30px;
+        }
+        .group-item { 
+            background-color: var(--group-item-bg); 
+            border-right: 6px solid var(--group-border); 
+            padding: 12px 18px; 
+            margin-bottom: 12px; 
+            border-radius: 8px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-start; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .group-num { 
+            font-size: 1.3em; 
+            color: var(--accent-color); 
+            font-weight: bold; 
+            margin-left: 20px; 
+            flex-shrink: 0; 
+        }
+        .group-teams { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+        }
+        .team-display {
+            display: flex;
+            align-items: center;
+            background-color: var(--team-display-bg);
+            padding: 6px 12px;
+            border-radius: 20px; 
+            border: 1px solid var(--text-color);
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        .team-flag {
+            width: 28px; 
+            height: 20px;
+            border: 1px solid #eee;
+            border-radius: 3px;
+            margin-right: 8px; 
+            object-fit: cover; 
+        }
+        .counter { 
+            font-size: 1.3em; 
+            color: var(--header-color); 
+            font-weight: bold; 
+            margin-bottom: 25px; 
+            text-align: center;
+            background-color: var(--group-item-bg);
+            padding: 15px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>محاكي قرعة كأس العالم 2026 🌍</h1>
+
+        <div class="controls">
+            <select id="teamSelector"></select>
+            <button id="generateBtn" onclick="generateGroups()">توليد المجموعات</button>
+            <button id="modeToggle" onclick="toggleTheme()">الوضع الليلي 🌙</button>
+        </div>
+
+        <div id="results">
+        </div>
+    </div>
+
+    <script>
+        function getFlagUrl(code) {
+            if (!code || code === 'N/A') return ''; 
+            if (code === 'GB-ENG') return `https://flagcdn.com/w20/eng.png`;
+            if (code === 'GB-SCT') return `https://flagcdn.com/w20/sct.png`;
+            if (code === 'GB-WLS') return `https://flagcdn.com/w20/wls.png`;
+            return `https://flagcdn.com/w20/${code.toLowerCase()}.png`;
+        }
+        
+        // *** 1. تعريف المنتخبات النهائية والمُصححة ***
+        const ALL_TEAMS_DATA = [
+            // Pot 1 (8 UEFA, 4 Non-UEFA)
+            { name: 'المكسيك', conf: 'CONCACAF', pot: 1, code: 'MX' }, { name: 'الولايات المتحدة', conf: 'CONCACAF', pot: 1, code: 'US' }, 
+            { name: 'كندا', conf: 'CONCACAF', pot: 1, code: 'CA' }, { name: 'إسبانيا', conf: 'UEFA', pot: 1, code: 'ES' }, 
+            { name: 'الأرجنتين', conf: 'CONMEBOL', pot: 1, code: 'AR' }, { name: 'فرنسا', conf: 'UEFA', pot: 1, code: 'FR' }, 
+            { name: 'إنجلترا', conf: 'UEFA', pot: 1, code: 'GB-ENG' }, { name: 'البرازيل', conf: 'CONMEBOL', pot: 1, code: 'BR' }, 
+            { name: 'البرتغال', conf: 'UEFA', pot: 1, code: 'PT' }, { name: 'هولندا', conf: 'UEFA', pot: 1, code: 'NL' }, 
+            { name: 'بلجيكا', conf: 'UEFA', pot: 1, code: 'BE' }, { name: 'ألمانيا', conf: 'UEFA', pot: 1, code: 'DE' },
+            
+            // Pot 2 (4 UEFA, 8 Non-UEFA)
+            { name: 'كرواتيا', conf: 'UEFA', pot: 2, code: 'HR' }, { name: 'المغرب', conf: 'CAF', pot: 2, code: 'MA' }, 
+            { name: 'كولومبيا', conf: 'CONMEBOL', pot: 2, code: 'CO' }, { name: 'أوروغواي', conf: 'CONMEBOL', pot: 2, code: 'UY' }, 
+            { name: 'النمسا', conf: 'UEFA', pot: 2, code: 'AT' }, { name: 'اليابان', conf: 'AFC', pot: 2, code: 'JP' }, 
+            { name: 'سويسرا', conf: 'UEFA', pot: 2, code: 'CH' }, { name: 'كوريا ج', conf: 'AFC', pot: 2, code: 'KR' }, 
+            { name: 'الإكوادور', conf: 'CONMEBOL', pot: 2, code: 'EC' }, { name: 'إيران', conf: 'AFC', pot: 2, code: 'IR' },
+            { name: 'الدنمارك', conf: 'UEFA', pot: 2, code: 'DK' }, { name: 'أستراليا', conf: 'AFC', pot: 2, code: 'AU' },
+            
+            // Pot 3 (3 UEFA, 9 Non-UEFA)
+            { name: 'النرويج', conf: 'UEFA', pot: 3, code: 'NO' }, { name: 'بنما', conf: 'CONCACAF', pot: 3, code: 'PA' }, 
+            { name: 'مصر', conf: 'CAF', pot: 3, code: 'EG' }, { name: 'الجزائر', conf: 'CAF', pot: 3, code: 'DZ' }, 
+            { name: 'باراغواي', conf: 'CONMEBOL', pot: 3, code: 'PY' }, { name: 'إسكتلندا', conf: 'UEFA', pot: 3, code: 'GB-SCT' }, 
+            { name: 'تركيا', conf: 'UEFA', pot: 3, code: 'TR' }, { name: 'أوكرانيا', conf: 'UEFA', pot: 3, code: 'UA' }, 
+            { name: 'أوزبكستان', conf: 'AFC', pot: 3, code: 'UZ' }, { name: 'قطر', conf: 'AFC', pot: 3, code: 'QA' }, 
+            { name: 'السعودية', conf: 'AFC', pot: 3, code: 'SA' }, { name: 'جنوب إفريقيا', conf: 'CAF', pot: 3, code: 'ZA' },
+            
+            // Pot 4 (2 UEFA, 10 Non-UEFA)
+            { name: 'الأردن', conf: 'AFC', pot: 4, code: 'JO' }, { name: 'كابو فيردي', conf: 'CAF', pot: 4, code: 'CV' }, 
+            { name: 'غانا', conf: 'CAF', pot: 4, code: 'GH' }, { name: 'كوراساو', conf: 'CONCACAF', pot: 4, code: 'CW' }, 
+            { name: 'هايتي', conf: 'CONCACAF', pot: 4, code: 'HT' }, { name: 'نيوزيلندا', conf: 'OFC', pot: 4, code: 'NZ' }, 
+            { name: 'بيرو', conf: 'CONMEBOL', pot: 4, code: 'PE' }, 
+            { name: 'صربيا', conf: 'UEFA', pot: 4, code: 'RS' }, 
+            // مقاعد الملحق العام (N/A لعدم عرض العلم)
+            { name: 'المتأهل من الملحق 1', conf: 'AFC', pot: 4, code: 'N/A' }, 
+            { name: 'المتأهل من الملحق 2', conf: 'CAF', pot: 4, code: 'N/A' },
+            { name: 'المتأهل من الملحق 3', conf: 'CONCACAF', pot: 4, code: 'N/A' },
+            { name: 'المتأهل من الملحق 4', conf: 'UEFA', pot: 4, code: 'N/A' } // مجموع الفرق الأوروبية في P4 هو 2
+        ];
+
+        // *** 2. وظيفة ملء قائمة الاختيار ***
+        function populateSelector() {
+            const selector = document.getElementById('teamSelector');
+            selector.innerHTML = '<option value="" disabled selected>اختر المنتخب ...</option>';
+            
+            const pots = { 1: [], 2: [], 3: [], 4: [] };
+            ALL_TEAMS_DATA.forEach(team => {
+                pots[team.pot].push(team);
+            });
+
+            for (let i = 1; i <= 4; i++) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = `التصنيف ${i} (${pots[i].length} منتخب)`;
+                pots[i].forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.name;
+                    option.textContent = team.name;
+                    selector.appendChild(option);
+                });
+                selector.appendChild(optgroup);
+            }
+        }
+        window.onload = populateSelector;
+
+
+        // *** 3. وظيفة توليد المجموعات (المنطق المصحح) ***
+        function generateGroups() {
+            const selectedTeamName = document.getElementById('teamSelector').value;
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            if (!selectedTeamName) {
+                resultsDiv.innerHTML = '<div class="counter" style="color: var(--accent-color);">الرجاء اختيار منتخب أولاً!</div>';
+                return;
+            }
+
+            const selectedTeam = ALL_TEAMS_DATA.find(t => t.name === selectedTeamName);
+            const { pot: myPot, conf: myConf } = selectedTeam;
+            let groupCounter = 0;
+            const validGroups = [];
+
+            const otherPots = [1, 2, 3, 4].filter(p => p !== myPot);
+            
+            // تصفية الفرق المتاحة مع تطبيق القيد القاري
+            const P_loop = otherPots.map(p => {
+                let availableTeams = ALL_TEAMS_DATA.filter(t => t.pot === p && t.name !== selectedTeamName);
+                
+                // تطبيق قيد القارة (يُستثنى منه UEFA)
+                if (myConf !== 'UEFA') {
+                    availableTeams = availableTeams.filter(t => t.conf !== myConf);
+                }
+                return availableTeams;
+            });
+
+
+            // الحلقات المتداخلة لدمج الفرق
+            for (const teamA of P_loop[0]) {
+                for (const teamB of P_loop[1]) {
+                    for (const teamC of P_loop[2]) {
+
+                        // **شرط أوروبا (UEFA Constraint):**
+                        let uefaCount = (myConf === 'UEFA' ? 1 : 0);
+                        if (teamA.conf === 'UEFA') uefaCount++;
+                        if (teamB.conf === 'UEFA') uefaCount++;
+                        if (teamC.conf === 'UEFA') uefaCount++;
+
+                        // التحقق من صلاحية عدد الفرق الأوروبية
+                        let isValidUEFA = false;
+                        if (myConf === 'UEFA') {
+                             if (uefaCount >= 2 && uefaCount <= 3) isValidUEFA = true;
+                        } else {
+                             if (uefaCount >= 1 && uefaCount <= 2) isValidUEFA = true;
+                        }
+                        
+                        if (isValidUEFA) {
+                            groupCounter++;
+                            validGroups.push({
+                                num: groupCounter,
+                                teams: [selectedTeam, teamA, teamB, teamC]
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // عرض النتائج
+            const counterElement = document.createElement('div');
+            counterElement.className = 'counter';
+            // النتيجة لمنتخب مصر P3, CAF هي 928 مجموعة
+            counterElement.textContent = `تم توليد ${groupCounter} مجموعة صالحة للمنتخب ${selectedTeamName}.`;
+            resultsDiv.appendChild(counterElement);
+
+            validGroups.forEach(group => {
+                const groupItem = document.createElement('div');
+                groupItem.className = 'group-item';
+                
+                const groupNum = document.createElement('span');
+                groupNum.className = 'group-num';
+                groupNum.textContent = `#${group.num}`;
+                groupItem.appendChild(groupNum);
+                
+                const teamsDiv = document.createElement('div');
+                teamsDiv.className = 'group-teams';
+                
+                const sortedTeams = [group.teams[0], group.teams[1], group.teams[2], group.teams[3]].sort((a, b) => a.pot - b.pot);
+
+                sortedTeams.forEach(team => {
+                    const teamDisplay = document.createElement('div');
+                    teamDisplay.className = 'team-display';
+
+                    if (team.code && team.code !== 'N/A') { 
+                        const flagImg = document.createElement('img');
+                        flagImg.className = 'team-flag';
+                        flagImg.src = getFlagUrl(team.code);
+                        flagImg.alt = `علم ${team.name}`;
+                        teamDisplay.appendChild(flagImg);
+                    }
+                    
+                    const teamNameSpan = document.createElement('span');
+                    let displayName = team.name;
+                    
+                    if (team.code === 'N/A') {
+                        displayName = `${team.name} (${team.conf})`; 
+                    }
+                    teamNameSpan.textContent = `${displayName} (P${team.pot})`; 
+                    teamDisplay.appendChild(teamNameSpan);
+                    
+                    teamsDiv.appendChild(teamDisplay);
+                });
+                
+                groupItem.appendChild(teamsDiv);
+                resultsDiv.appendChild(groupItem);
+            });
+        }
+
+        // *** 4. وظيفة التبديل بين الوضع الليلي والنهاري ***
+        function toggleTheme() {
+            const body = document.body.parentElement;
+            const toggleButton = document.getElementById('modeToggle');
+            
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                toggleButton.textContent = 'الوضع الليلي 🌙';
+            } else {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                toggleButton.textContent = 'الوضع النهاري ☀️';
+            }
+        }
+    </script>
+</body>
+</html>
